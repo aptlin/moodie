@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 import morgan from "morgan";
 import passport from "passport";
 import appConfig from "./config";
-
+import Routes from "./routes";
 async function init() {
   envConfig();
   await mongoose.connect(appConfig.db.uri, {
@@ -39,7 +39,7 @@ async function init() {
   app.use(passport.initialize());
   app.use(compression());
   app.use(helmet());
-  app.use(require("./app/routes"));
+  app.use(Routes);
   app.listen(app.get("port"));
   return app;
 }

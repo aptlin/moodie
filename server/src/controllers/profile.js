@@ -1,4 +1,4 @@
-import { findById, findByIdAndUpdate } from "../app/models/user";
+import User from "../models/user";
 import {
   itemNotFound,
   yieldError,
@@ -11,7 +11,7 @@ import { checkPassword } from "../middleware/auth";
 
 const getProfileFromDB = async id => {
   return new Promise((resolve, reject) => {
-    findById(id, "-_id -updatedAt -createdAt", (err, user) => {
+    User.findById(id, "-_id -updatedAt -createdAt", (err, user) => {
       itemNotFound(err, user, reject, "NOT_FOUND");
       resolve(user);
     });
@@ -20,7 +20,7 @@ const getProfileFromDB = async id => {
 
 const updateProfileInDB = async (req, id) => {
   return new Promise((resolve, reject) => {
-    findByIdAndUpdate(
+    User.findByIdAndUpdate(
       id,
       req,
       {
@@ -38,7 +38,7 @@ const updateProfileInDB = async (req, id) => {
 
 const findUser = async id => {
   return new Promise((resolve, reject) => {
-    findById(id, "password email", (err, user) => {
+    User.findById(id, "password email", (err, user) => {
       itemNotFound(err, user, reject, "USER_DOES_NOT_EXIST");
       resolve(user);
     });
@@ -53,7 +53,7 @@ const passwordsDoNotMatch = async () => {
 
 const changePasswordInDB = async (id, req) => {
   return new Promise((resolve, reject) => {
-    findById(id, "+password", (err, user) => {
+    User.findById(id, "+password", (err, user) => {
       itemNotFound(err, user, reject, "NOT_FOUND");
 
       // Assigns new password to user

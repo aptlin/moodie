@@ -1,8 +1,8 @@
 import { use } from "passport";
-import { findById } from "../app/models/user";
-import { decrypt } from "../app/middleware/auth";
+import User from "../models/user";
+import { decrypt } from "../middleware/auth";
 import { Strategy as JwtStrategy } from "passport-jwt";
-
+import appConfig from "../config";
 const jwtExtractor = req => {
   let token = null;
   if (req.headers.authorization) {
@@ -20,11 +20,11 @@ const jwtExtractor = req => {
 
 const jwtOptions = {
   jwtFromRequest: jwtExtractor,
-  secretOrKey: process.env.JWT_SECRET
+  secretOrKey: appConfig.auth.secret
 };
 
 const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
-  findById(payload.data._id, (err, user) => {
+  User.findById(payload.data._id, (err, user) => {
     if (err) {
       return done(err, false);
     }

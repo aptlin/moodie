@@ -1,6 +1,6 @@
 import { matchedData } from "express-validator";
 import { v4 as unique_id } from "uuid";
-import model from "../app/models/user";
+import model from "../models/user";
 import {
   checkQueryString,
   deleteItem,
@@ -90,12 +90,11 @@ export async function updateItem(req, res) {
 export async function createItem(req, res) {
   try {
     // Gets locale from header 'Accept-Language'
-    const locale = req.getLocale();
     req = matchedData(req);
     const doesEmailExists = await emailExists(req.email);
     if (!doesEmailExists) {
       const item = await create(req);
-      sendRegistrationEmailMessage(locale, item);
+      // sendRegistrationEmailMessage(locale, item);
       res.status(201).json(item);
     }
   } catch (error) {

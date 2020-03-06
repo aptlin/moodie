@@ -38,26 +38,7 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
-    phone: {
-      type: String
-    },
-    city: {
-      type: String
-    },
-    country: {
-      type: String
-    },
     urlTwitter: {
-      type: String,
-      validate: {
-        validator(v: string) {
-          return v === "" ? true : validator.isURL(v);
-        },
-        message: appConfig.errors.INVALID_URL
-      },
-      lowercase: true
-    },
-    urlGitHub: {
       type: String,
       validate: {
         validator(v: string) {
@@ -93,19 +74,18 @@ const UserSchema = new mongoose.Schema(
 );
 
 UserSchema.pre("save", function(next) {
-  const user = this as AppUserSchema;
-  if (!user.isModified("password")) {
+  if (!this.isModified("password")) {
     return next();
   }
-  return bcrypt.genSalt(appConfig.auth.saltFactor, function(err, salt) {
+  return bcrypt.genSalt(appConfig.auth.saltFactor, (err, salt) => {
     if (err) {
       return next(err);
     }
-    return bcrypt.hash(user.password, salt, function(err, hash) {
+    return bcrypt.hash((this as any).password, salt, (err, hash) => {
       if (err) {
         return next(err);
       }
-      user.password = hash;
+      (this as any).password = hash;
       return next();
     });
   });

@@ -2,13 +2,12 @@ import { Router } from "express";
 import { authenticate } from "passport";
 import "../middleware/passport";
 import {
-  forgotPassword,
   getRefreshToken,
   login,
   register,
   resetPassword,
   roleAuthorization,
-  verify
+  verifyRequest
 } from "../controllers/auth";
 import {
   forgotPassword as validatePasswordRenewal,
@@ -24,8 +23,7 @@ const requireAuth = authenticate("jwt", {
 });
 
 router.post("/register", validateRegister, register);
-router.post("/verify", validateVerification, verify);
-router.post("/forgot", validatePasswordRenewal, forgotPassword);
+router.post("/verify", validateVerification, verifyRequest);
 router.post("/reset", validatePaswordReset, resetPassword);
 router.get(
   "/token",

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { authenticate } from "passport";
-import { all } from "trim-request";
 import "../middleware/passport";
 import { roleAuthorization } from "../controllers/auth";
 import {
@@ -21,12 +20,11 @@ const requireAuth = authenticate("jwt", {
   session: false
 });
 
-router.get("/", requireAuth, roleAuthorization(["admin"]), all, getItems);
+router.get("/", requireAuth, roleAuthorization(["admin"]), getItems);
 router.post(
   "/",
   requireAuth,
   roleAuthorization(["admin"]),
-  all,
   _createItem,
   createItem
 );
@@ -34,7 +32,6 @@ router.get(
   "/:id",
   requireAuth,
   roleAuthorization(["admin"]),
-  all,
   _getItem,
   getItem
 );
@@ -42,7 +39,6 @@ router.patch(
   "/:id",
   requireAuth,
   roleAuthorization(["admin"]),
-  all,
   _updateItem,
   updateItem
 );
@@ -50,7 +46,6 @@ router.delete(
   "/:id",
   requireAuth,
   roleAuthorization(["admin"]),
-  all,
   _deleteItem,
   deleteItem
 );

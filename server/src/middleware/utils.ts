@@ -33,7 +33,7 @@ export function handleError(res: Response, err: ResponseError) {
   });
 }
 
-export function yieldError(code: number, message: string) {
+export function yieldError(code: number, message: any) {
   return {
     code,
     message
@@ -50,7 +50,7 @@ export function validate(req: Request, res: Response, next: NextFunction) {
   } catch (err) {
     return handleError(res, {
       name: "ValidationError",
-      ...yieldError(422, JSON.stringify(err.array()))
+      ...yieldError(422, err.array())
     });
   }
 }

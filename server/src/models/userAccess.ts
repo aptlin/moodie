@@ -33,8 +33,8 @@ const UserAccessSchema = new mongoose.Schema(
   }
 );
 
-const userAccessSchema = mongoose.model<AppUserAccessSchema>(
+const userAccessModel = mongoose.model<AppUserAccessSchema>(
   "UserAccess",
   UserAccessSchema
 );
-export default userAccessSchema;
+export default userAccessModel;

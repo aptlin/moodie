@@ -1,36 +1,13 @@
 import { Router } from "express";
 const router = Router();
-import { readdirSync } from "fs";
-const routesPath = `${__dirname}/`;
-import { removeExtensionFromFile } from "../middleware/utils";
+import AuthRoute from "./auth";
+import ProfileRoute from "./profile";
+import UsersRoute from "./users";
 
-/*
- * Load routes statically and/or dynamically
- */
+router.use("/", AuthRoute);
+router.use("/profile", ProfileRoute);
+router.use("/users", UsersRoute);
 
-// Load Auth route
-router.use("/", require("./auth").default);
-
-// Loop routes path and loads every file as a route except this file and Auth route
-readdirSync(routesPath).filter(file => {
-  // Take filename and remove last part (extension)
-  const routeFile = removeExtensionFromFile(file);
-  // Prevents loading of this file and auth file
-  return routeFile !== "index" && routeFile !== "auth"
-    ? router.use(`/${routeFile}`, require(`./${routeFile}`))
-    : "";
-});
-
-/*
- * Setup routes for index
- */
-router.get("/", (req, res) => {
-  res.render("index");
-});
-
-/*
- * Handle 404 error
- */
 router.use("*", (req, res) => {
   res.status(404).json({
     errors: {

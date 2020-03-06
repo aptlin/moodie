@@ -1,17 +1,19 @@
-import { config } from "dotenv";
+import { config as envConfig } from "dotenv";
 import { Seeder } from "mongo-seeding";
 import { resolve } from "path";
-config();
+envConfig();
 
 const seedConfig = {
-  database: process.env.MONGO_URI,
+  database: process.env.DB_URI,
   inputPath: resolve(__dirname, "./data"),
   dropDatabase: false,
   useUnifiedTopology: true
 };
 const seeder = new Seeder(seedConfig);
-const collections = seeder.readCollectionsFromPath(resolve("./data"));
-
+const collections = seeder.readCollectionsFromPath(resolve("./data"), {
+  extensions: ["js", "json", "ts"]
+});
+console.log(collections);
 const main = async () => {
   try {
     await seeder.import(collections);
