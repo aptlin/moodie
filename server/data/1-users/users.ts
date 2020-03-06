@@ -6,7 +6,7 @@ const admin = {
   _id: new ObjectID("5aa1c2c35ef7a4e97b5e995a"),
   name: "Administrator",
   email: "admin@admin.com",
-  password: "$2b$05$WRzQJgLCUuI5FpQIPdUynOkpI.hQzZrqHOBC2vTf5.FhFixy94u0m",
+  password: "$2b$05$343vNWW0xzKafVpWVPio5uYqh/ORThRlJ2.7jWYxzVgSNl5OtaJwe",
   role: "admin",
   verified: true,
   verification: "3d6e072c-0eaf-4239-bb5e-495e6486148f",

@@ -35,32 +35,7 @@ export const createItem = [
     .withMessage("IS_EMPTY")
     .isIn(["user", "admin"])
     .withMessage("USER_NOT_IN_KNOWN_ROLE"),
-  check("phone")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY")
-    .trim(),
-  check("city")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY")
-    .trim(),
-  check("country")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY")
-    .trim(),
   check("urlTwitter")
-    .optional()
-    .custom(v => (v === "" ? true : isURL(v)))
-    .withMessage("NOT_A_VALID_URL"),
-  check("urlGitHub")
     .optional()
     .custom(v => (v === "" ? true : isURL(v)))
     .withMessage("NOT_A_VALID_URL"),
@@ -71,55 +46,26 @@ export const createItem = [
 
 export const updateItem = [
   check("name")
-    .exists()
-    .withMessage("MISSING")
+    .optional()
     .not()
     .isEmpty()
     .withMessage("IS_EMPTY"),
   check("email")
-    .exists()
-    .withMessage("MISSING")
+    .optional()
     .not()
     .isEmpty()
     .withMessage("IS_EMPTY"),
   check("role")
-    .exists()
-    .withMessage("MISSING")
+    .optional()
     .not()
     .isEmpty()
     .withMessage("IS_EMPTY"),
-  check("phone")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY")
-    .trim(),
-  check("city")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY")
-    .trim(),
-  check("country")
-    .exists()
-    .withMessage("MISSING")
-    .not()
-    .isEmpty()
-    .withMessage("IS_EMPTY")
-    .trim(),
   check("urlTwitter")
     .optional()
     .custom(v => (v === "" ? true : isURL(v)))
     .withMessage("NOT_A_VALID_URL"),
-  check("urlGitHub")
-    .optional()
-    .custom(v => (v === "" ? true : isURL(v)))
-    .withMessage("NOT_A_VALID_URL"),
   check("id")
-    .exists()
-    .withMessage("MISSING")
+    .optional()
     .not()
     .isEmpty()
     .withMessage("IS_EMPTY"),

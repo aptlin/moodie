@@ -123,17 +123,9 @@ const saveLoginAttemptsToDB = async user => {
   });
 };
 
-/**
- * Checks that login attempts are greater than specified in constant and also that blockexpires is less than now
- * @param {Object} user - user object
- */
 const blockIsExpired = user =>
   user.loginAttempts > LOGIN_ATTEMPTS && user.blockExpires <= new Date();
 
-/**
- *
- * @param {Object} user - user object.
- */
 const checkLoginAttemptsAndBlockExpires = async user => {
   return new Promise((resolve, reject) => {
     // Let user try to login again after blockexpires, resets user loginAttempts
@@ -154,10 +146,6 @@ const checkLoginAttemptsAndBlockExpires = async user => {
   });
 };
 
-/**
- * Checks if blockExpires from user is greater than now
- * @param {Object} user - user object
- */
 const userIsBlocked = async user => {
   return new Promise((resolve, reject) => {
     if (user.blockExpires > new Date()) {
@@ -182,10 +170,6 @@ const findUser = async email => {
   });
 };
 
-/**
- * Finds user by ID
- * @param {string} id - user´s id
- */
 const findUserById = async userId => {
   return new Promise((resolve, reject) => {
     User.findById(userId, (err, item) => {
@@ -195,10 +179,6 @@ const findUserById = async userId => {
   });
 };
 
-/**
- * Adds one attempt to loginAttempts, then compares loginAttempts with the constant LOGIN_ATTEMPTS, if is less returns wrong password, else returns blockUser function
- * @param {Object} user - user object
- */
 const passwordsDoNotMatch = async user => {
   user.loginAttempts += 1;
   await saveLoginAttemptsToDB(user);
@@ -212,10 +192,6 @@ const passwordsDoNotMatch = async user => {
   });
 };
 
-/**
- * Registers a new user in database
- * @param {Object} req - request object
- */
 const registerUser = async req => {
   return new Promise((resolve, reject) => {
     const user = new User({
@@ -233,11 +209,6 @@ const registerUser = async req => {
   });
 };
 
-/**
- * Builds the registration token
- * @param {Object} item - user object that contains created id
- * @param {Object} userInfo - user object
- */
 const returnRegisterToken = (item, userInfo) => {
   if (process.env.NODE_ENV !== "production") {
     userInfo.verification = item.verification;
@@ -249,10 +220,6 @@ const returnRegisterToken = (item, userInfo) => {
   return data;
 };
 
-/**
- * Checks if verification id exists for user
- * @param {string} id - verification id
- */
 const verificationExists = async id => {
   return new Promise((resolve, reject) => {
     User.findOne(
@@ -267,11 +234,6 @@ const verificationExists = async id => {
     );
   });
 };
-
-/**
- * Verifies an user
- * @param {Object} user - user object
- */
 const verifyUser = async user => {
   return new Promise((resolve, reject) => {
     user.verified = true;
@@ -287,11 +249,6 @@ const verifyUser = async user => {
   });
 };
 
-/**
- * Marks a request to reset password as used
- * @param {Object} req - request object
- * @param {Object} forgot - forgot object
- */
 const markResetPasswordAsUsed = async (req, forgot) => {
   return new Promise((resolve, reject) => {
     forgot.used = true;
@@ -305,11 +262,6 @@ const markResetPasswordAsUsed = async (req, forgot) => {
   });
 };
 
-/**
- * Updates a user password in database
- * @param {string} password - new password
- * @param {Object} user - user object
- */
 const updatePassword = async (password, user) => {
   return new Promise((resolve, reject) => {
     user.password = password;
@@ -320,10 +272,6 @@ const updatePassword = async (password, user) => {
   });
 };
 
-/**
- * Finds user by email to reset password
- * @param {string} email - user email
- */
 const findUserToResetPassword = async email => {
   return new Promise((resolve, reject) => {
     User.findOne(
@@ -338,10 +286,6 @@ const findUserToResetPassword = async email => {
   });
 };
 
-/**
- * Checks if a forgot password verification exists
- * @param {string} id - verification id
- */
 const findForgottenPassword = async id => {
   return new Promise((resolve, reject) => {
     PasswordReset.findOne(
@@ -369,10 +313,6 @@ const checkPermissions = async (data, next) => {
   });
 };
 
-/**
- * Gets user id from token
- * @param {string} token - Encrypted and encoded token
- */
 const getUserIdFromToken = async token => {
   return new Promise((resolve, reject) => {
     // Decrypts, verifies and decode token
@@ -385,21 +325,12 @@ const getUserIdFromToken = async token => {
   });
 };
 
-/********************
- * Public functions *
- ********************/
-
-/**
- * Login function called by route
- * @param {Object} req - request object
- * @param {Object} res - response object
- */
 export async function login(req, res) {
   try {
     const data = matchedData(req);
     const user = await findUser(data.email);
-    // await userIsBlocked(user);
-    // await checkLoginAttemptsAndBlockExpires(user);
+    await userIsBlocked(user);
+    await checkLoginAttemptsAndBlockExpires(user);
     const isPasswordMatch = await checkPassword(data.password, user);
     if (!isPasswordMatch) {
       handleError(res, await passwordsDoNotMatch(user));
@@ -414,11 +345,6 @@ export async function login(req, res) {
   }
 }
 
-/**
- * Register function called by route
- * @param {Object} req - request object
- * @param {Object} res - response object
- */
 export async function register(req, res) {
   try {
     // Gets locale from header 'Accept-Language'
@@ -435,6 +361,7 @@ export async function register(req, res) {
     handleError(res, error);
   }
 }
+
 export async function resetPassword(req, res) {
   try {
     const data = matchedData(req);
@@ -447,11 +374,7 @@ export async function resetPassword(req, res) {
     handleError(res, error);
   }
 }
-/**
- * Verify function called by route
- * @param {Object} req - request object
- * @param {Object} res - response object
- */
+
 export async function verifyRequest(req, res) {
   try {
     req = matchedData(req);
@@ -462,11 +385,6 @@ export async function verifyRequest(req, res) {
   }
 }
 
-/**
- * Refresh token function called by route
- * @param {Object} req - request object
- * @param {Object} res - response object
- */
 export async function getRefreshToken(req, res) {
   try {
     const tokenEncrypted = req.headers.authorization
@@ -484,10 +402,6 @@ export async function getRefreshToken(req, res) {
   }
 }
 
-/**
- * Roles authorization function called by route
- * @param {Array} roles - roles specified on the route
- */
 export function roleAuthorization(roles) {
   return async (req, res, next) => {
     try {
