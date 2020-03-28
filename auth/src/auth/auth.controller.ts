@@ -29,8 +29,8 @@ import { GrantType } from './auth.interface';
 import { AuthService } from './auth.service';
 import { LoginDTO, LoginResponseDTO } from './DTO/auth';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { TokensService } from './tokens/tokens.service';
-import { UsersService } from './users/users.service';
+import { TokensService } from './modules/tokens/tokens.service';
+import { UsersService } from './modules/users/users.service';
 
 @ApiTags('auth')
 @Controller('auth')

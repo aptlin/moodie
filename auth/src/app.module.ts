@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './auth/users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import appConfig from './app.config';
-import { TokensModule } from './auth/tokens/tokens.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './auth/modules/users/users.module';
 
 @Module({
   imports: [

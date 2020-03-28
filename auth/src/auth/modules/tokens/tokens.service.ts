@@ -13,9 +13,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { RefreshToken } from './tokens.interface';
-import { JWTPayload } from '../auth.interface';
+import { JWTPayload } from '../../auth.interface';
 import { v4 as uuid } from 'uuid';
-import { CreateTokenDTO, LoginResponseDTO } from '../DTO/auth';
+import { CreateTokenDTO, LoginResponseDTO } from '../../DTO/auth';
 
 @Injectable()
 export class TokensService {

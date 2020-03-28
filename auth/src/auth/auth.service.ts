@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { UsersService } from './users/users.service';
+import { UsersService } from './modules/users/users.service';
 import { JWTPayload } from './auth.interface';
 import { LoginDTO, LoginResponseDTO } from './DTO/auth';
-import { TokensService } from './tokens/tokens.service';
+import { TokensService } from './modules/tokens/tokens.service';
 
 @Injectable()
 export class AuthService {
