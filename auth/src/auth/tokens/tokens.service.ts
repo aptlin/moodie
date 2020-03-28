@@ -1,16 +1,21 @@
 import getUnixTime from 'date-fns/getUnixTime';
 import { add } from 'date-fns';
 import { randomBytes } from 'crypto';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { RefreshToken } from './tokens.interface';
-import { CreateTokenDTO, LoginResponseDTO } from './DTO';
 import { JWTPayload } from '../auth.interface';
 import { v4 as uuid } from 'uuid';
+import { CreateTokenDTO, LoginResponseDTO } from '../DTO/auth';
 
 @Injectable()
 export class TokensService {
@@ -54,17 +59,16 @@ export class TokensService {
   async getAccessTokenFromRefreshToken(
     refreshToken: string,
     oldAccessToken: string,
-    clientId: string,
     ipAddress: string,
   ): Promise<LoginResponseDTO> {
     try {
       const token = await this.findOne(refreshToken);
       const currentDate = new Date();
       if (!token) {
-        throw new Error('Refresh token not found');
+        throw new InternalServerErrorException('Refresh token not found');
       }
       if (token.expiresAt < currentDate) {
-        throw new Error('Refresh token expired');
+        throw new BadRequestException('Refresh token expired');
       }
       const oldPayload = await this.validateToken(oldAccessToken, true);
       const payload = { sub: oldPayload.sub };
@@ -74,7 +78,6 @@ export class TokensService {
 
       accessToken.refreshToken = await this.createRefreshToken({
         userId: oldPayload.sub,
-        clientId,
         ipAddress,
       });
       return accessToken;
@@ -85,15 +88,13 @@ export class TokensService {
   }
   async createRefreshToken(tokenContent: {
     userId: string;
-    clientId: string;
     ipAddress: string;
   }) {
-    const { userId, clientId, ipAddress } = tokenContent;
+    const { userId, ipAddress } = tokenContent;
 
     const token: RefreshToken = {
       userId: userId,
       value: randomBytes(64).toString('hex'),
-      clientId,
       ipAddress,
       expiresAt: add(new Date(), { seconds: this.refreshTokenExpiration }),
     };

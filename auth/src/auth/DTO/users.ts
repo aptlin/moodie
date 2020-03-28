@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { LoginDTO } from 'src/auth/DTO';
+import { LoginDTO } from 'src/auth/DTO/auth';
 import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class UserDTO {
@@ -13,7 +13,7 @@ export class UserDTO {
 export class RegisterUserDTO extends LoginDTO {
   @IsNotEmpty({ message: 'Username is required' })
   @MinLength(4, { message: 'Username is too short.' })
-  @ApiProperty({ default: 'tester' })
+  @ApiProperty({ example: 'raymundo' })
   username: string;
 
   @ApiProperty() firstName?: string;

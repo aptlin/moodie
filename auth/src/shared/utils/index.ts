@@ -1,3 +1,5 @@
+import { validate } from 'class-validator';
+
 function toTitleCase(str: string): string {
   return str
     .toLowerCase()
@@ -18,4 +20,9 @@ export function getOperationId(model: string, operation: string) {
 
 export function enumToArray(enumVariable: any): string[] {
   return Object.keys(enumVariable).map(key => enumVariable[key]);
+}
+
+export async function validateDTO(DTOClass: any, values: any) {
+  const validationDTO = Object.assign(new DTOClass(), values);
+  return await validate(validationDTO);
 }

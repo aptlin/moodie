@@ -1,41 +1,45 @@
 import {
-  Controller,
-  Post,
-  HttpCode,
-  HttpStatus,
-  UnauthorizedException,
   BadRequestException,
   Body,
-  Ip,
+  Controller,
   Get,
-  Req,
-  Query,
+  HttpCode,
+  HttpStatus,
   InternalServerErrorException,
+  Ip,
+  Logger,
+  Post,
+  Query,
+  Req,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { TokensService } from './tokens/tokens.service';
 import {
-  ApiResponse,
-  ApiOperation,
   ApiBearerAuth,
+  ApiOperation,
   ApiQuery,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { getOperationId, enumToArray } from 'src/shared/utils';
-import { LoginResponseDTO } from './tokens/DTO';
-import { LoginDTO } from './DTO';
-import { GrantType } from './auth.interface';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { User } from 'src/shared/decorators';
 import { ExtractJwt } from 'passport-jwt';
+import { RegisterUserDTO, UserDTO } from 'src/auth/DTO/users';
+import { User } from 'src/shared/decorators';
+import { enumToArray, getOperationId, validateDTO } from 'src/shared/utils';
+import { GrantType } from './auth.interface';
+import { AuthService } from './auth.service';
+import { LoginDTO, LoginResponseDTO } from './DTO/auth';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TokensService } from './tokens/tokens.service';
+import { UsersService } from './users/users.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private logger = new Logger('User');
   constructor(
     private readonly authService: AuthService,
     private readonly tokensService: TokensService,
+    private readonly userService: UsersService,
   ) {}
 
   @Post('login')
@@ -49,7 +53,6 @@ export class AuthController {
     @Body() credentials: LoginDTO,
   ): Promise<LoginResponseDTO> {
     const loginResults = await this.authService.login(credentials, userIp);
-
     if (!loginResults) {
       throw new UnauthorizedException(
         'This email & password combination was not found',
@@ -73,7 +76,6 @@ export class AuthController {
     @Ip() userIp,
     @Query('grant_type') grantType: GrantType,
     @Query('refresh_token') refreshToken?: string,
-    @Query('client_id') clientId?: string,
   ): Promise<LoginResponseDTO> {
     let res: LoginResponseDTO;
 
@@ -84,7 +86,6 @@ export class AuthController {
           res = await this.tokensService.getAccessTokenFromRefreshToken(
             refreshToken,
             oldAccessToken,
-            clientId,
             userIp,
           );
         } catch (error) {
@@ -120,5 +121,36 @@ export class AuthController {
       await this.authService.logout(refreshToken, userId);
     }
     return { message: 'ok' };
+  }
+
+  @Post('register')
+  @ApiResponse({ status: HttpStatus.CREATED, type: UserDTO })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
+  @ApiOperation(getOperationId('User', 'Register'))
+  async registerClient(@Body() registerDTO: RegisterUserDTO): Promise<UserDTO> {
+    const errors = await validateDTO(RegisterUserDTO, registerDTO);
+    if (errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    const { email } = registerDTO;
+
+    let exist;
+    try {
+      exist = await this.userService.findOneByEmail(email);
+    } catch (error) {
+      throw new InternalServerErrorException('Error while creating a user');
+    }
+
+    if (exist) {
+      throw new BadRequestException(
+        `The user with email ${email} already exists`,
+      );
+    }
+
+    const newUser = await this.userService.register(registerDTO);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { username, firstName, lastName, birthDate } = newUser;
+    return { email, username, firstName, lastName, birthDate };
   }
 }

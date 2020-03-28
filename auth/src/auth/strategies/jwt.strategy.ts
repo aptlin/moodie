@@ -17,11 +17,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ExtractJwt.fromUrlQueryParameter('access_token'),
       ]),
       secretOrKey: configService.get<string>('auth.secret'),
-      passReqToCallback: true,
+      ignoreExpiration: false,
     });
   }
 
-  async validate(payload: JWTPayload) {
+  async validate(payload: any) {
     const result = await this.tokensService.validatePayload(payload);
     if (!result) {
       throw new UnauthorizedException();

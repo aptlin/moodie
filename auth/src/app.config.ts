@@ -6,10 +6,10 @@ const appConfig = () => ({
   auth: {
     accessTokenExpiration: process.env.AUTH_ACCESS_TOKEN_EXPIRATION
       ? parseInt(process.env.AUTH_ACCESS_TOKEN_EXPIRATION)
-      : 300,
+      : 3600,
     refreshTokenExpiration: process.env.AUTH_REFRESH_TOKEN_EXPIRATION
       ? parseInt(process.env.AUTH_REFRESH_TOKEN_EXPIRATION)
-      : 900,
+      : 3600 * 30,
     secret:
       process.env.AUTH_JWT_SECRET || 'de9e5869-5aef-4750-8077-79d13bc27cbc',
   },

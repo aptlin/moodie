@@ -13,9 +13,6 @@ export const TokensSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  clientId: {
-    type: String,
-  },
   ipAddress: {
     type: String,
   },

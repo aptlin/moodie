@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { Injectable, Logger } from '@nestjs/common';
+import { UsersService } from './users/users.service';
 import { JWTPayload } from './auth.interface';
-import { LoginDTO } from './DTO';
-import { LoginResponseDTO } from './tokens/DTO';
+import { LoginDTO, LoginResponseDTO } from './DTO/auth';
 import { TokensService } from './tokens/tokens.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger('AuthService');
   constructor(
     private usersService: UsersService,
     private tokensService: TokensService,
@@ -17,7 +17,6 @@ export class AuthService {
     ipAddress: string,
   ): Promise<LoginResponseDTO> {
     const loginResults = await this.usersService.login(credentials);
-
     if (!loginResults) {
       return null;
     }
@@ -32,7 +31,6 @@ export class AuthService {
 
     const tokenContent = {
       userId: loginResults.id,
-      clientId: credentials.clientId,
       ipAddress,
     };
     const refresh = await this.tokensService.createRefreshToken(tokenContent);
