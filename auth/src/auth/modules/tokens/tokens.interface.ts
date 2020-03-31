@@ -3,4 +3,5 @@ export interface RefreshToken {
   userId?: string;
   expiresAt: Date;
   ipAddress?: string;
+  sessionId?: string;
 }

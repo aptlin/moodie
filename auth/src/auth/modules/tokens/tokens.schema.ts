@@ -16,4 +16,7 @@ export const TokensSchema = new mongoose.Schema({
   ipAddress: {
     type: String,
   },
+  sessionId: {
+    type: String,
+  },
 });

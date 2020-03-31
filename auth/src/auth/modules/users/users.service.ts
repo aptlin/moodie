@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Model } from 'mongoose';
@@ -9,6 +14,7 @@ import { compare } from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger('User Service');
   constructor(
     @InjectModel('User') private userModel: Model<User & mongoose.Document>,
   ) {}
@@ -43,6 +49,19 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string) {
-    return this.userModel.findOne({ email });
+    return await this.userModel.findOne({ email });
+  }
+
+  async updateLoginDate(email: string) {
+    return await this.userModel.update(
+      { email },
+      { lastLoginDate: Date.now() },
+      (err, user) => {
+        if (err) {
+          throw new InternalServerErrorException('Could not update login date');
+        }
+        this.logger.verbose('Updated user:', user);
+      },
+    );
   }
 }

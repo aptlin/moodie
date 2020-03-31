@@ -20,6 +20,7 @@ export class AuthService {
     credentials: LoginDTO,
     ipAddress: string,
   ): Promise<LoginResponseDTO> {
+    const { sessionId } = credentials;
     const loginResults = await this.usersService.login(credentials);
     if (!loginResults) {
       return null;
@@ -36,6 +37,7 @@ export class AuthService {
     const tokenContent = {
       userId: loginResults.id,
       ipAddress,
+      sessionId,
     };
     const refresh = await this.tokensService.createRefreshToken(tokenContent);
 

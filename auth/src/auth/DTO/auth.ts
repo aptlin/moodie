@@ -6,12 +6,15 @@ import { GrantType } from '../auth.interface';
 export class LoginDTO {
   @ApiProperty({ example: 'ray@moodie.sdll.io' })
   @IsEmail({}, { message: 'Email is invalid' })
-  email: string;
+  readonly email: string;
 
-  @ApiProperty({ example: 'totallysecurepassword' })
+  @ApiProperty({ example: 'secure_password' })
   @IsNotEmpty({ message: 'Password is required' })
   @MinLength(8, { message: 'Password must have at least 8 characters.' })
-  password: string;
+  readonly password: string;
+
+  @ApiPropertyOptional({ example: 'unique_session_id' })
+  readonly sessionId?: string;
 }
 
 export class AccessTokenDTO {
@@ -24,6 +27,9 @@ export class AccessTokenDTO {
 
   @ApiPropertyOptional()
   readonly refreshToken?: string;
+
+  @ApiPropertyOptional({ example: 'unique_session_id' })
+  readonly sessionId?: string;
 }
 
 export class AccessTokenValidationDTO {

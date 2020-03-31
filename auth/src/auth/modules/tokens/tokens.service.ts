@@ -39,17 +39,17 @@ export class TokensService {
       'auth.refreshTokenExpiration',
     );
   }
-  async findOne(refreshTokenValue: string) {
-    return this.tokensModel.findOne({ value: refreshTokenValue });
+  async findOne(refreshTokenValue: string, sessionId?: string) {
+    return this.tokensModel.findOne({
+      value: refreshTokenValue,
+      expiresAt: { $gte: new Date() },
+      sessionId,
+    });
   }
 
   async create(createTokenDTO: CreateTokenDTO) {
     const createdToken = new this.tokensModel(createTokenDTO);
     return await createdToken.save();
-  }
-
-  async deleteById(tokenId: mongoose.Types.ObjectId) {
-    return this.tokensModel.findOneAndDelete(tokenId);
   }
 
   async delete(filter = {}) {
@@ -59,10 +59,11 @@ export class TokensService {
   async getAccessTokenFromRefreshToken(
     refreshToken: string,
     oldAccessToken: string,
+    sessionId: string,
     ipAddress: string,
   ): Promise<LoginResponseDTO> {
     try {
-      const token = await this.findOne(refreshToken);
+      const token = await this.findOne(refreshToken, sessionId);
       const currentDate = new Date();
       if (!token) {
         throw new InternalServerErrorException('Refresh token not found');
@@ -74,10 +75,11 @@ export class TokensService {
       const payload = { sub: oldPayload.sub };
       const accessToken = await this.createAccessToken(payload);
 
-      await this.deleteById(token.id);
+      await token.remove();
 
       accessToken.refreshToken = await this.createRefreshToken({
         userId: oldPayload.sub,
+        sessionId,
         ipAddress,
       });
       return accessToken;
@@ -89,13 +91,15 @@ export class TokensService {
   async createRefreshToken(tokenContent: {
     userId: string;
     ipAddress: string;
+    sessionId: string;
   }) {
-    const { userId, ipAddress } = tokenContent;
+    const { userId, ipAddress, sessionId } = tokenContent;
 
     const token: RefreshToken = {
       userId: userId,
       value: randomBytes(64).toString('hex'),
       ipAddress,
+      sessionId,
       expiresAt: add(new Date(), { seconds: this.refreshTokenExpiration }),
     };
 

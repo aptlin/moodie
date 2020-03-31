@@ -24,7 +24,7 @@ import {
 import { ExtractJwt } from 'passport-jwt';
 import { RegisterUserDTO, UserDTO } from 'src/auth/DTO/users';
 import { User } from 'src/shared/decorators';
-import { enumToArray, getOperationId, validateDTO } from 'src/shared/utils';
+import { getOperationId, validateDTO } from 'src/shared/utils';
 import { GrantType } from './auth.interface';
 import { AuthService } from './auth.service';
 import {
@@ -59,12 +59,14 @@ export class AuthController {
     @Ip() userIp,
     @Body() credentials: LoginDTO,
   ): Promise<LoginResponseDTO> {
+    const { email } = credentials;
     const loginResults = await this.authService.login(credentials, userIp);
     if (!loginResults) {
       throw new UnauthorizedException(
         'This email & password combination was not found',
       );
     }
+    await this.userService.updateLoginDate(email);
 
     return loginResults;
   }
@@ -102,7 +104,7 @@ export class AuthController {
     @Body() details: AccessTokenDTO,
   ): Promise<LoginResponseDTO> {
     let res: LoginResponseDTO;
-    const { grantType, refreshToken } = details;
+    const { grantType, refreshToken, sessionId } = details;
 
     switch (grantType) {
       case GrantType.RefreshToken:
@@ -111,6 +113,7 @@ export class AuthController {
           res = await this.tokensService.getAccessTokenFromRefreshToken(
             refreshToken,
             oldAccessToken,
+            sessionId,
             userIp,
           );
         } catch (error) {
