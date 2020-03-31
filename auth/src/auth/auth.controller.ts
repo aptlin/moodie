@@ -27,10 +27,17 @@ import { User } from 'src/shared/decorators';
 import { enumToArray, getOperationId, validateDTO } from 'src/shared/utils';
 import { GrantType } from './auth.interface';
 import { AuthService } from './auth.service';
-import { LoginDTO, LoginResponseDTO } from './DTO/auth';
+import {
+  LoginDTO,
+  LoginResponseDTO,
+  AccessTokenDTO,
+  AccessTokenValidationDTO,
+  AccessTokenValidationResponseDTO,
+} from './DTO/auth';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TokensService } from './modules/tokens/tokens.service';
 import { UsersService } from './modules/users/users.service';
+import { getUnixTime } from 'date-fns';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -62,21 +69,40 @@ export class AuthController {
     return loginResults;
   }
 
-  @Get('access_token')
+  @Post('validate')
+  @HttpCode(200)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: AccessTokenValidationResponseDTO,
+  })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
+  @ApiOperation(getOperationId('Users', 'Login'))
+  async validate(
+    @Body() credentials: AccessTokenValidationDTO,
+  ): Promise<AccessTokenValidationResponseDTO> {
+    try {
+      const { sub: id, exp } = await this.authService.validate(credentials);
+      const expiresIn = exp - getUnixTime(new Date());
+      return { id, expiresIn };
+    } catch (err) {
+      throw new BadRequestException(err);
+    }
+  }
+
+  @Post('access_token')
   @ApiBearerAuth()
   @ApiResponse({ status: HttpStatus.OK, type: LoginResponseDTO })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
-  @ApiQuery({ name: 'grant_type', enum: enumToArray(GrantType) })
-  @ApiQuery({ name: 'refresh_token', required: false })
   @ApiOperation({ summary: 'AccessToken', description: 'Get a refresh token' })
   async token(
     @Req() req,
     @Ip() userIp,
-    @Query('grant_type') grantType: GrantType,
-    @Query('refresh_token') refreshToken?: string,
+    @Body() details: AccessTokenDTO,
   ): Promise<LoginResponseDTO> {
     let res: LoginResponseDTO;
+    const { grantType, refreshToken } = details;
 
     switch (grantType) {
       case GrantType.RefreshToken:

@@ -114,10 +114,10 @@ export class TokensService {
     return token;
   }
 
-  private validateToken(token: string, ignoreExpiration = false) {
-    return this.jwtService.verify(token, {
+  async validateToken(token: string, ignoreExpiration = false) {
+    return (await this.jwtService.verifyAsync(token, {
       ignoreExpiration,
-    }) as JWTPayload;
+    })) as JWTPayload;
   }
 
   async deleteRefreshTokenForUser(userId: string) {

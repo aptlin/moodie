@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UsersService } from './modules/users/users.service';
 import { JWTPayload } from './auth.interface';
-import { LoginDTO, LoginResponseDTO } from './DTO/auth';
+import {
+  LoginDTO,
+  LoginResponseDTO,
+  AccessTokenValidationDTO,
+} from './DTO/auth';
 import { TokensService } from './modules/tokens/tokens.service';
 
 @Injectable()
@@ -38,6 +42,11 @@ export class AuthService {
     loginResponse.refreshToken = refresh;
 
     return loginResponse;
+  }
+
+  async validate(payload: AccessTokenValidationDTO) {
+    const { accessToken } = payload;
+    return this.tokensService.validateToken(accessToken, false);
   }
 
   async logout(userId: string, refreshToken: string): Promise<any> {
