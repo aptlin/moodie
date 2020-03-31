@@ -69,7 +69,6 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
   @ApiQuery({ name: 'grant_type', enum: enumToArray(GrantType) })
   @ApiQuery({ name: 'refresh_token', required: false })
-  @ApiQuery({ name: 'client_id', required: false })
   @ApiOperation({ summary: 'AccessToken', description: 'Get a refresh token' })
   async token(
     @Req() req,
@@ -99,14 +98,16 @@ export class AuthController {
     }
   }
 
-  @Post('logout')
   @UseGuards(JwtAuthGuard)
+  @Post('logout')
   @HttpCode(200)
   @ApiBearerAuth()
   @ApiResponse({ status: HttpStatus.OK })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException })
   @ApiOperation(getOperationId('Users', 'Logout'))
+  @ApiQuery({ name: 'refresh_token', required: false })
+  @ApiQuery({ name: 'from_all', required: false })
   async logout(
     @User('id') userId,
     @Query('refresh_token') refreshToken?: string,
@@ -118,7 +119,7 @@ export class AuthController {
       if (!refreshToken) {
         throw new BadRequestException('No refresh token provided');
       }
-      await this.authService.logout(refreshToken, userId);
+      await this.authService.logout(userId, refreshToken);
     }
     return { message: 'ok' };
   }

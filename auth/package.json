@@ -1,10 +1,10 @@
 {
-  "name": "auth",
+  "name": "moodie-auth",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Sasha Illarionov <sasha@sdll.io>",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",

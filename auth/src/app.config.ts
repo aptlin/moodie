@@ -14,5 +14,4 @@ const appConfig = () => ({
       process.env.AUTH_JWT_SECRET || 'de9e5869-5aef-4750-8077-79d13bc27cbc',
   },
 });
-
 export default appConfig;

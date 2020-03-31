@@ -15,6 +15,26 @@ services:
   #     - db
   #   volumes:
   #     - /usr/src/app/node_modules
+  auth:
+    build:
+      context: ./auth
+    container_name: "moodie_auth"
+    environment:
+      - NODE_ENV=${AUTH_NODE_ENV}
+      - PORT=${AUTH_PORT}
+      - DATABASE_HOST=${AUTH_DATABASE_HOST}
+      - AUTH_ACCESS_TOKEN_EXPIRATION=${AUTH_ACCESS_TOKEN_EXPIRATION}
+      - AUTH_REFRESH_TOKEN_EXPIRATION=${AUTH_REFRESH_TOKEN_EXPIRATION}
+
+    ports:
+      - 3010:${AUTH_PORT}
+    links:
+      - db
+    depends_on:
+      - db
+    networks:
+      - moodie-network
+
   db:
     image: mongo:latest
     container_name: "moodie_db"
@@ -22,3 +42,8 @@ services:
       - ./data/db:/data/db
     ports:
       - 27017:27017
+    networks:
+      - moodie-network
+
+networks:
+  moodie-network:

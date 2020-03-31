@@ -13,9 +13,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('auth/api', app, document);
 
   const configService = app.get(ConfigService);
-  await app.listen(configService.get<string>('port'));
+  const port = configService.get<string>('port');
+  await app.listen(port);
 }
 bootstrap();
