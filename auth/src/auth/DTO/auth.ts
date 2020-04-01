@@ -17,6 +17,7 @@ export class LoginDTO {
   readonly sessionId?: string;
 }
 
+
 export class AccessTokenDTO {
   @ApiProperty({
     enum: enumToArray(GrantType),

@@ -8,7 +8,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Model } from 'mongoose';
 import { User } from './users.interface';
-import { RegisterUserDTO } from '../../DTO/users';
+import {
+  RegisterUserDTO,
+  ProfileDTO,
+  UserDTO,
+  ProfileResponseDTO,
+} from '../../DTO/users';
 import { LoginDTO } from 'src/auth/DTO/auth';
 import { compare } from 'bcryptjs';
 
@@ -24,7 +29,18 @@ export class UsersService {
     return await createdUser.save();
   }
 
-  async login(loginObject: LoginDTO) {
+  async extractProfile(user: any): Promise<ProfileResponseDTO> {
+    const { username, email, firstName, lastName, birthDate } = user;
+    return { username, email, firstName, lastName, birthDate };
+  }
+
+  async profile(contact: ProfileDTO): Promise<ProfileResponseDTO> {
+    const { id } = contact;
+    const user = await this.userModel.findById(id);
+    return this.extractProfile(user);
+  }
+
+  async login(loginObject: LoginDTO): Promise<ProfileDTO> {
     const { email, password: passwordAttempt } = loginObject;
 
     const user = await this.findOneByEmail(email);
@@ -40,11 +56,6 @@ export class UsersService {
 
     return {
       id: user.id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      birthDate: user.birthDate,
     };
   }
 
@@ -60,7 +71,7 @@ export class UsersService {
         if (err) {
           throw new InternalServerErrorException('Could not update login date');
         }
-        this.logger.verbose('Updated user:', user);
+        this.logger.verbose(`New login: ${email}`);
       },
     );
   }

@@ -3,6 +3,20 @@ import { LoginDTO } from 'src/auth/DTO/auth';
 import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class UserDTO {
+  @ApiProperty() id: string;
+  @ApiProperty() email: string;
+  @ApiProperty() username: string;
+  @ApiPropertyOptional() firstName?: string;
+  @ApiPropertyOptional() lastName?: string;
+  @ApiPropertyOptional() birthDate?: Date;
+}
+
+export class ProfileDTO {
+  @IsNotEmpty({ message: 'User ID is required' })
+  readonly id: string;
+}
+
+export class ProfileResponseDTO {
   @ApiProperty() email: string;
   @ApiProperty() username: string;
   @ApiPropertyOptional() firstName?: string;

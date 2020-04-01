@@ -22,7 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ExtractJwt } from 'passport-jwt';
-import { RegisterUserDTO, UserDTO } from 'src/auth/DTO/users';
+import { RegisterUserDTO, ProfileResponseDTO } from 'src/auth/DTO/users';
 import { User } from 'src/shared/decorators';
 import { getOperationId, validateDTO } from 'src/shared/utils';
 import { GrantType } from './auth.interface';
@@ -154,10 +154,12 @@ export class AuthController {
   }
 
   @Post('register')
-  @ApiResponse({ status: HttpStatus.CREATED, type: UserDTO })
+  @ApiResponse({ status: HttpStatus.CREATED, type: ProfileResponseDTO })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, type: BadRequestException })
   @ApiOperation(getOperationId('User', 'Register'))
-  async registerClient(@Body() registerDTO: RegisterUserDTO): Promise<UserDTO> {
+  async registerClient(
+    @Body() registerDTO: RegisterUserDTO,
+  ): Promise<ProfileResponseDTO> {
     const errors = await validateDTO(RegisterUserDTO, registerDTO);
     if (errors.length > 0) {
       throw new BadRequestException(errors);
@@ -179,8 +181,6 @@ export class AuthController {
     }
 
     const newUser = await this.userService.register(registerDTO);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { username, firstName, lastName, birthDate } = newUser;
-    return { email, username, firstName, lastName, birthDate };
+    return this.userService.extractProfile(newUser);
   }
 }
