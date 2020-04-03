@@ -1,7 +1,7 @@
 const appConfig = () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
   database: {
-    host: process.env.DATABASE_HOST || 'mongodb://localhost/auth',
+    host: process.env.AUTH_DATABASE_HOST || 'mongodb://localhost/auth',
   },
   auth: {
     accessTokenExpiration: process.env.AUTH_ACCESS_TOKEN_EXPIRATION

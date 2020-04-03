@@ -67,7 +67,7 @@ export class UsersService {
     return await this.userModel.update(
       { email },
       { lastLoginDate: Date.now() },
-      (err, user) => {
+      err => {
         if (err) {
           throw new InternalServerErrorException('Could not update login date');
         }

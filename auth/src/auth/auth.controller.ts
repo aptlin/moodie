@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   InternalServerErrorException,
@@ -21,23 +20,23 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { getUnixTime } from 'date-fns';
 import { ExtractJwt } from 'passport-jwt';
-import { RegisterUserDTO, ProfileResponseDTO } from 'src/auth/DTO/users';
+import { ProfileResponseDTO, RegisterUserDTO } from 'src/auth/DTO/users';
 import { User } from 'src/shared/decorators';
 import { getOperationId, validateDTO } from 'src/shared/utils';
 import { GrantType } from './auth.interface';
 import { AuthService } from './auth.service';
 import {
-  LoginDTO,
-  LoginResponseDTO,
   AccessTokenDTO,
   AccessTokenValidationDTO,
   AccessTokenValidationResponseDTO,
+  LoginDTO,
+  LoginResponseDTO,
 } from './DTO/auth';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TokensService } from './modules/tokens/tokens.service';
 import { UsersService } from './modules/users/users.service';
-import { getUnixTime } from 'date-fns';
 
 @ApiTags('auth')
 @Controller('auth')
