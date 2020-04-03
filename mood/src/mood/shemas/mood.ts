@@ -9,7 +9,6 @@ const MoodSchema = new Schema(
     },
     themes: [{ type: Schema.Types.ObjectId, ref: 'Theme' }],
   },
-  { versionKey: false },
 );
 
 MoodSchema.index({ userId: 1 });

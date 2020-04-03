@@ -8,7 +8,6 @@ const ThemeSchema = new Schema(
       type: [{ type: Schema.Types.ObjectId, ref: 'Experience' }],
     },
   },
-  { versionKey: false },
 );
 ThemeSchema.index({ userId: 1, name: 1 });
 export { ThemeSchema };

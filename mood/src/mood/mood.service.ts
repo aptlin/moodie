@@ -2,14 +2,19 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Document, Model } from 'mongoose';
 import {
   CreateDTO,
   CreateResponseDTO,
-  UpdateDTO,
-  UpdateResponseDTO,
+  UpdateExperienceDTO,
+  UpdateExperienceResponseDTO,
+  DeleteExperienceDTO,
+  DeleteExperienceResponseDTO,
+  DeleteThemeDTO,
+  DeleteThemeResponseDTO,
 } from './DTO/mood';
 import { Experience, Mood, Theme } from './mood.interface';
 @Injectable()
@@ -69,31 +74,52 @@ export class MoodService {
     return themeDocument;
   }
 
-  async updateOrCreateExperience(
+  async _updateOrCreateExperience(
     userId: string,
     experience: string | string[],
     options: {
       themeDocument?: Theme & Document;
       isFavorite: boolean;
       upsert: boolean;
+      name?: string | string[];
     },
   ) {
-    const { themeDocument, isFavorite, upsert } = options;
+    const { themeDocument, isFavorite, upsert, name: names } = options;
+    if (
+      names &&
+      ((Array.isArray(names) && !Array.isArray(experience)) ||
+        (!Array.isArray(names) && Array.isArray(experience)) ||
+        (Array.isArray(names) &&
+          Array.isArray(experience) &&
+          names.length !== experience.length))
+    ) {
+      throw new BadRequestException(
+        'New names much match the length of the query.',
+      );
+    }
     const bulk = this.experienceModel.collection.initializeUnorderedBulkOp();
     if (Array.isArray(experience)) {
-      for (const name of experience) {
+      for (const [index, name] of experience.entries()) {
         let res = bulk.find({ userId, name });
         if (upsert) {
           res = res.upsert();
         }
-        res.update({ $set: { isFavorite } });
+        if (names) {
+          res.update({ $set: { isFavorite, name: names[index] } });
+        } else {
+          res.update({ $set: { isFavorite } });
+        }
       }
     } else {
       let res = bulk.find({ userId, name: experience });
       if (upsert) {
         res = res.upsert();
       }
-      res.update({ $set: { isFavorite } });
+      if (names) {
+        res.update({ $set: { isFavorite, name: names } });
+      } else {
+        res.update({ $set: { isFavorite } });
+      }
     }
     const results = await bulk.execute();
     if (results.hasWriteErrors()) {
@@ -132,7 +158,7 @@ export class MoodService {
       moodDiary,
       theme,
     );
-    const { total, updated, created } = await this.updateOrCreateExperience(
+    const { total, updated, created } = await this._updateOrCreateExperience(
       userId,
       experience,
       {
@@ -149,17 +175,66 @@ export class MoodService {
   }
   async updateExperience(
     userId: string,
-    updateDTO: UpdateDTO,
-  ): Promise<UpdateResponseDTO> {
-    const { experience, isFavorite } = updateDTO;
-    const { total, updated } = await this.updateOrCreateExperience(
+    updateExperienceDTO: UpdateExperienceDTO,
+  ): Promise<UpdateExperienceResponseDTO> {
+    const { experience, isFavorite, name } = updateExperienceDTO;
+    const { total, updated } = await this._updateOrCreateExperience(
       userId,
       experience,
       {
         upsert: false,
         isFavorite,
+        name,
       },
     );
     return { total, updated };
+  }
+
+  async deleteExperience(
+    userId: string,
+    deleteExperienceDTO: DeleteExperienceDTO,
+  ): Promise<DeleteExperienceResponseDTO> {
+    const { experience } = deleteExperienceDTO;
+    const experienceEntries = await this.experienceModel.find({
+      userId,
+      name: { $in: Array.isArray(experience) ? experience : [experience] },
+    });
+    const experienceIds = experienceEntries.map(entry => entry.id);
+    await this.themeModel.updateMany(
+      {
+        userId,
+        experiences: { $in: experienceIds },
+      },
+      { $pullAll: { experiences: experienceIds } },
+    );
+    const { ok, deletedCount } = await this.experienceModel.deleteMany({
+      _id: { $in: experienceIds },
+    });
+
+    return { message: ok ? 'ok' : 'error', deletedCount };
+  }
+
+  async deleteTheme(
+    userId: string,
+    deleteThemeDTO: DeleteThemeDTO,
+  ): Promise<DeleteThemeResponseDTO> {
+    const { theme } = deleteThemeDTO;
+    const themeDocuments = await this.themeModel.find({
+      userId,
+      name: { $in: Array.isArray(theme) ? theme : [theme] },
+    });
+    const themeIds = themeDocuments.map(doc => doc.id);
+    await this.moodModel.updateMany(
+      {
+        userId,
+        themes: { $in: themeIds },
+      },
+      { $pullAll: { themes: themeIds } },
+    );
+    const { ok, deletedCount } = await this.themeModel.deleteMany({
+      _id: { $in: themeIds },
+    });
+
+    return { message: ok ? 'ok' : 'error', deletedCount };
   }
 }

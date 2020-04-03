@@ -11,9 +11,6 @@ const ExperienceSchema = new Schema(
       type: Boolean,
     },
   },
-  {
-    versionKey: false,
-  },
 );
 
 ExperienceSchema.index({ userId: 1, name: 1 });
