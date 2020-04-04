@@ -53,8 +53,7 @@ export class AuthGuard implements CanActivate {
           })
           .catch(err => {
             if (err) {
-              reject(err.response.data);
-              throw new InternalServerErrorException(err.response.data);
+              reject(err);
             }
           });
       });
