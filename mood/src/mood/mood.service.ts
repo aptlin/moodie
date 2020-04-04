@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Document, Model } from 'mongoose';
+import { Document, Model, PaginateModel } from 'mongoose';
 import {
   CreateDTO,
   CreateResponseDTO,
@@ -15,18 +15,23 @@ import {
   DeleteExperienceResponseDTO,
   DeleteThemeDTO,
   DeleteThemeResponseDTO,
+  GetThemeDTO,
+  GetThemeResponseDTO,
+  GetExperienceDTO,
+  GetExperienceResponseDTO,
 } from './DTO/mood';
 import { Experience, Mood, Theme } from './mood.interface';
+import { isString, isArrayOfStrings } from 'src/shared/utils';
 @Injectable()
 export class MoodService {
   private readonly logger = new Logger('Mood Service');
   constructor(
     @InjectModel('Mood')
-    private moodModel: Model<Mood & Document>,
+    private moodModel: PaginateModel<Mood & Document>,
     @InjectModel('Theme')
-    private themeModel: Model<Theme & Document>,
+    private themeModel: PaginateModel<Theme & Document>,
     @InjectModel('Experience')
-    private experienceModel: Model<Experience & Document>,
+    private experienceModel: PaginateModel<Experience & Document>,
   ) {}
 
   async findOrCreateMood(userId: string) {
@@ -236,5 +241,122 @@ export class MoodService {
     });
 
     return { message: ok ? 'ok' : 'error', deletedCount };
+  }
+
+  async getTheme(
+    userId: string,
+    getDTO: GetThemeDTO,
+  ): Promise<GetThemeResponseDTO> {
+    const { theme, experience, offset, limit } = getDTO;
+    if (!theme) {
+      throw new BadRequestException('A theme query must be provided.');
+    }
+
+    if (theme && !isString(theme) && !isArrayOfStrings(theme)) {
+      throw new BadRequestException(
+        `Theme is not a string or an array of strings, got ${theme}`,
+      );
+    }
+
+    if (experience && !isString(experience) && !isArrayOfStrings(experience)) {
+      throw new BadRequestException(
+        `Experience is not a string or an array of strings, got ${experience}`,
+      );
+    }
+
+    if (offset < 0) {
+      throw new BadRequestException(`Invalid offset: ${offset}`);
+    }
+
+    if (limit <= 0) {
+      throw new BadRequestException(`Invalid limit: ${limit}`);
+    }
+
+    const themeFilter: any = {
+      userId,
+      name: {
+        $in: Array.isArray(theme) ? theme : [theme],
+      },
+    };
+
+    if (experience) {
+      const experienceEntries = await this.experienceModel.find({
+        userId,
+        name: { $in: Array.isArray(experience) ? experience : [experience] },
+      });
+      const experienceIds = experienceEntries.map(entry => entry.id);
+      themeFilter.experiences = {
+        $in: experienceIds,
+      };
+    }
+
+    return (await this.themeModel.paginate(themeFilter, {
+      offset,
+      limit,
+      populate: {
+        path: 'experiences',
+      },
+    })) as any;
+  }
+  async getExperience(
+    userId: string,
+    getDTO: GetExperienceDTO,
+  ): Promise<GetExperienceResponseDTO> {
+    const { theme, experience, offset, limit } = getDTO;
+    if (!experience) {
+      throw new BadRequestException('An experience query must be provided.');
+    }
+
+    if (theme && !isString(theme) && !isArrayOfStrings(theme)) {
+      throw new BadRequestException(
+        `Theme is not a string or an array of strings, got ${theme}`,
+      );
+    }
+
+    if (experience && !isString(experience) && !isArrayOfStrings(experience)) {
+      throw new BadRequestException(
+        `Experience is not a string or an array of strings, got ${experience}`,
+      );
+    }
+
+    if (offset < 0) {
+      throw new BadRequestException(`Invalid offset: ${offset}`);
+    }
+
+    if (limit <= 0) {
+      throw new BadRequestException(`Invalid limit: ${limit}`);
+    }
+
+    const experienceFilter: any = { userId };
+    const experienceEntries = await this.experienceModel.find({
+      userId,
+      name: { $in: Array.isArray(experience) ? experience : [experience] },
+    });
+    const experienceIds = experienceEntries.map(entry => entry.id);
+
+    experienceFilter._id = { $in: experienceIds };
+    if (theme) {
+      const themeFilter: any = {
+        userId,
+        experiences: {
+          $in: experienceIds,
+        },
+        name: {
+          $in: Array.isArray(theme) ? theme : [theme],
+        },
+      };
+      const themeDocuments = await this.themeModel.find(themeFilter);
+      const validExperiences = themeDocuments
+        .map(document => document.experiences)
+        .reduce((prev, currArray) => {
+          return prev.concat(currArray);
+        }, []);
+      experienceFilter._id = { $in: validExperiences };
+    }
+
+    return (await this.experienceModel.paginate(experienceFilter, {
+      offset,
+      limit,
+    })) as any;
   }
 }

@@ -1,3 +1,4 @@
+import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 export interface Experience {
   userId: string;
@@ -9,6 +10,12 @@ export interface Theme {
   userId: string;
   name: string;
   experiences: mongoose.Types.ObjectId[];
+}
+
+export interface PaginatedTheme extends Document {
+  userId: string;
+  name: string;
+  experiences: (Experience & Document)[];
 }
 
 export interface Mood {

@@ -2,14 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-
+import * as helmet from 'helmet';
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
+  app.use(helmet());
   const options = new DocumentBuilder()
-    .setTitle('Auth')
-    .setDescription('The auth API for Moodie')
+    .setTitle('Mood')
+    .setDescription('The mood API for Moodie')
     .setVersion('1.0')
-    .addTag('auth')
+    .addTag('mood')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
