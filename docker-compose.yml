@@ -62,5 +62,11 @@ services:
     networks:
       - moodie-network
 
+  cache:
+    image: redis
+    container_name: "moodie_cache"
+    expose:
+      - "6379"
+
 networks:
   moodie-network:
