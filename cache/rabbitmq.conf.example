@@ -1,0 +1,10 @@
+listeners.tcp.default = 5672
+management.load_definitions = /etc/rabbitmq/moodie_definitions.json
+management.tcp.port = 15672
+default_user = test_user
+default_pass = test_password 
+default_permissions.configure = .*
+default_permissions.read = .*
+default_permissions.write = .*
+default_user_tags.administrator = false
+loopback_users = none 

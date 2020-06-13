@@ -1,23 +1,9 @@
 version: "3"
 services:
-  # client:
-  #   build:
-  #     context: ./client
-  #   container_name: "moodie_client"
-  #   environment:
-  #     - PORT=3000
-  #     - NODE_ENV=production
-  #   ports:
-  #     - 3000:3000
-  #   links:
-  #     - db
-  #   depends_on:
-  #     - db
-  #   volumes:
-  #     - /usr/src/app/node_modules
   auth:
     build:
-      context: ./auth
+      context: .
+      dockerfile: ./Dockerfile-auth
     container_name: "moodie_auth"
     environment:
       - NODE_ENV=${AUTH_NODE_ENV}
@@ -30,19 +16,44 @@ services:
       - 3010:${AUTH_PORT}
     depends_on:
       - db
+      - notifications
+    networks:
+      - moodie-network
+
+  notifications:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-notifications
+
+    container_name: "moodie_notifications"
+    volumes:
+      - ./shared:/usr/src/shared
+    environment:
+      - NODE_ENV=${NOTIFICATIONS_NODE_ENV}
+      - NOTIFICATIONS_PORT=${NOTIFICATIONS_PORT}
+      - CACHE_HOST=${CACHE_HOST}
+      - AUTH_PROVIDER=${AUTH_PROVIDER}
+      - AUTH_VERIFICATION_ENDPOINT=${AUTH_VERIFICATION_ENDPOINT}
+    ports:
+      - 3015:${NOTIFICATIONS_PORT}
+    depends_on:
+      - cache
     networks:
       - moodie-network
 
   mood:
     build:
-      context: ./mood
+      context: .
+      dockerfile: ./Dockerfile-mood
     container_name: "moodie_mood"
+    volumes:
+      - ./shared:/usr/src/shared
     environment:
       - NODE_ENV=${MOOD_NODE_ENV}
       - PORT=${MOOD_PORT}
       - MOOD_DATABASE_HOST=${MOOD_DATABASE_HOST}
-      - MOOD_AUTH_PROVIDER=${MOOD_AUTH_PROVIDER}
-      - MOOD_AUTH_VERIFICATION_ENDPOINT=${MOOD_AUTH_VERIFICATION_ENDPOINT}
+      - AUTH_PROVIDER=${AUTH_PROVIDER}
+      - AUTH_VERIFICATION_ENDPOINT=${AUTH_VERIFICATION_ENDPOINT}
 
     ports:
       - 3020:${MOOD_PORT}
@@ -63,10 +74,16 @@ services:
       - moodie-network
 
   cache:
-    image: redis
+    build:
+      context: .
+      dockerfile: ./Dockerfile-cache
+    hostname: "cache"
     container_name: "moodie_cache"
-    expose:
-      - "6379"
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - moodie-network
 
 networks:
   moodie-network:

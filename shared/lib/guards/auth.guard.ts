@@ -6,20 +6,15 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ExtractJwt } from 'passport-jwt';
+import config from '../config';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly verificationURI: string;
-  constructor(
-    private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
-  ) {
-    const authURI = this.configService.get<string>('auth.uri');
-    const verificationEndpoint = this.configService.get<string>(
-      'auth.verificationEndpoint',
-    );
+  constructor(private readonly httpService: HttpService) {
+    const authURI = config.auth.uri;
+    const verificationEndpoint = config.auth.verificationEndpoint;
     this.verificationURI = `${authURI}/${verificationEndpoint}`;
   }
   validate(accessToken) {

@@ -32,7 +32,8 @@ import {
   GetExperienceResponseDTO,
   GetExperienceDTO,
 } from './DTO/mood';
-import { AuthGuard } from './guards/auth.guard';
+
+import { AuthGuard } from '@moodie/shared';
 import { MoodService } from './mood.service';
 import { safeJsonParse } from 'src/shared/utils';
 

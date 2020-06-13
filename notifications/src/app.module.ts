@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { MessageModule } from './message/message.module';
 import { ConfigModule } from '@nestjs/config';
 import appConfig from './app.config';
+import { ProcessModule } from './process/process.module';
 
 @Module({
   imports: [
@@ -12,8 +11,9 @@ import appConfig from './app.config';
       isGlobal: true,
     }),
     MessageModule,
+    ProcessModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

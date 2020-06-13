@@ -1,6 +1,6 @@
 import { genSalt, hash } from 'bcryptjs';
 import * as mongoose from 'mongoose';
-import { isEmail } from 'validator';
+import validator from 'validator';
 import { User } from './users.interface';
 
 export const UserSchema = new mongoose.Schema<User>({
@@ -8,7 +8,7 @@ export const UserSchema = new mongoose.Schema<User>({
     type: String,
     unique: true,
     required: true,
-    validate: [isEmail, 'invalid email'],
+    validate: [validator.isEmail, 'invalid email'],
   },
   username: {
     type: String,

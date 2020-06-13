@@ -104,3 +104,5 @@ dist
 
 # TernJS port file
 .tern-port
+cache/rabbitmq.conf
+cache/moodie_definitions.json

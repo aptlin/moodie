@@ -1,0 +1,6 @@
+FROM rabbitmq:management-alpine
+
+COPY cache/rabbitmq.conf /etc/rabbitmq/
+COPY cache/moodie_definitions.json /etc/rabbitmq/
+
+CMD ["rabbitmq-server"]

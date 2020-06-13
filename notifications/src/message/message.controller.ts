@@ -9,21 +9,18 @@ import {
   Req,
   Body,
 } from '@nestjs/common';
-import { AuthGuard } from '@moodie/gateway';
+import { AuthGuard } from '@moodie/shared';
 import { ApiBearerAuth, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import {
   VerificationNotificationResponseDTO,
   VerificationNotificationDTO,
 } from './message.dto';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { MessageService } from './message.service';
 
-@UseGuards(AuthGuard)
 @Controller('notifications')
 export class MessageController {
-  constructor(
-    @InjectQueue('verification') private readonly verificationQueue: Queue,
-  ) {}
+  constructor(private readonly messageService: MessageService) {}
+
 
   @UseGuards(AuthGuard)
   @Post('verify')
@@ -38,12 +35,9 @@ export class MessageController {
   @ApiOperation({
     summary: 'Create an experience of a given or default theme for a user',
   })
-  async create(
+  async verify(
     @Body() verificationNotificationDTO: VerificationNotificationDTO,
   ): Promise<VerificationNotificationResponseDTO> {
-    return await this.verificationQueue.add(
-      'send',
-      verificationNotificationDTO,
-    );
+    return await this.messageService.send(verificationNotificationDTO);
   }
 }

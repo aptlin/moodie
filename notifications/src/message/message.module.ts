@@ -1,22 +1,31 @@
-import { Module } from '@nestjs/common';
-import { MessageService } from './message.service';
+import { HttpModule, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MessageController } from './message.controller';
-import { BullModule } from '@nestjs/bull';
-import { ConfigService, ConfigModule } from '@nestjs/config';
+import { MessageService } from './message.service';
 
 @Module({
   imports: [
-    BullModule.registerQueueAsync({
-      name: 'verification',
+    ConfigModule,
+    HttpModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('queues.verification.cache.host'),
-          port: +configService.get<number>('queues.verification.cache.port'),
-        },
+        timeout: configService.get<number>('http.timeout'),
+        maxRedirects: configService.get<number>('http.maxRedirects'),
       }),
       inject: [ConfigService],
     }),
+    ClientsModule.register([
+      {
+        name: 'VERIFICATION_CLIENT',
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.CACHE_HOST || 'amqp://localhost:5672'],
+          queue: 'verification',
+          queueOptions: { durable: true },
+        },
+      },
+    ]),
   ],
   providers: [MessageService],
   controllers: [MessageController],
